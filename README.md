@@ -1,4 +1,4 @@
-# KKN Inventory 🎒
+# KKN Inventory
 
 Inventory and logistics management app for KKN (community service) activities. Built with **Next.js 16** as a full-stack application and **PostgreSQL** as the database.
 
