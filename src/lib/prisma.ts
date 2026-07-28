@@ -6,11 +6,28 @@ const globalForPrisma = globalThis as unknown as {
 };
 
 function createPrismaClient() {
-  const connectionString = process.env.DIRECT_URL || process.env.DATABASE_URL;
+  // Use transaction pooler (DATABASE_URL) on Vercel/serverless
+  // Use session pooler (DIRECT_URL) for local dev
+  const isVercel = !!process.env.VERCEL;
+  const connectionString = isVercel
+    ? process.env.DATABASE_URL
+    : (process.env.DIRECT_URL || process.env.DATABASE_URL);
+
   if (!connectionString) {
     throw new Error("Database URL not set");
   }
-  const adapter = new PrismaPg(connectionString);
+
+  // Remove pgbouncer=true query param — PrismaPg adapter doesn't support it
+  const cleanUrl = connectionString
+    .replace("?pgbouncer=true", "")
+    .replace("&pgbouncer=true", "");
+
+  // Limit connections for serverless environment
+  const url = isVercel
+    ? cleanUrl + (cleanUrl.includes("?") ? "&" : "?") + "connection_limit=5"
+    : cleanUrl;
+
+  const adapter = new PrismaPg(url);
   return new PrismaClient({ adapter });
 }
 
