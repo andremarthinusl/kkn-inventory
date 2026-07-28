@@ -41,8 +41,6 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 
-# prisma generated client — regenerate with: npx prisma generate
-/src/generated/prisma/*
 
 # project config — local dev only
 .claude/
