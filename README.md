@@ -6,17 +6,17 @@ Inventory and logistics management app for KKN (community service) activities. B
 
 | Feature | Description |
 |---------|-------------|
-| 📦 **Item Management** | CRUD, filtering, search, condition & stock status |
-| 🗂️ **Categories & Locations** | Manage item categories and storage locations |
-| 📅 **Events & Programs** | Log activities, item requirements, preparation status |
-| 🤝 **Borrowing** | Lending to others, borrowing from others, overdue detection |
-| 📥 **Stock Transactions** | In/out stock with database transactions |
-| 📊 **Reports** | CSV export (inventory, loans, transactions, activity) |
-| 📱 **Calendar** | Monthly grid view of events and programs |
-| 🔐 **Authentication** | Login/register, JWT sessions, user validation |
-| 📷 **QR Code** | Unique QR per item for quick access |
-| 👤 **Profile** | Edit profile, change password, upload avatar (Supabase Storage) |
-| 🌓 **Dark Mode** | Light & dark theme support |
+| **Item Management** | CRUD, filtering, search, condition & stock status |
+| **Categories & Locations** | Manage item categories and storage locations |
+| **Events & Programs** | Log activities, item requirements, preparation status |
+| **Borrowing** | Lending to others, borrowing from others, overdue detection |
+| **Stock Transactions** | In/out stock with database transactions |
+| **Reports** | CSV export (inventory, loans, transactions, activity) |
+| **Calendar** | Monthly grid view of events and programs |
+| **Authentication** | Login/register, JWT sessions, user validation |
+| **QR Code** | Unique QR per item for quick access |
+| **Profile** | Edit profile, change password, upload avatar (Supabase Storage) |
+| **Dark Mode** | Light & dark theme support |
 
 ## Tech Stack
 
