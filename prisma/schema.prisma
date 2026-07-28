@@ -1,0 +1,208 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// ========== USER ==========
+model User {
+  id        String   @id @default(uuid())
+  name      String
+  email     String   @unique
+  password  String
+  image     String?  @default("/avatars/default.png")
+  validated Int      @default(0)
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  activityLogs     ActivityLog[]
+  itemTransactions ItemTransaction[]
+
+  @@map("users")
+}
+
+// ========== KATEGORI ==========
+model Category {
+  id        String   @id @default(uuid())
+  name      String   @unique
+  icon      String?
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+  deletedAt DateTime? @map("deleted_at")
+
+  items Item[]
+  @@map("categories")
+}
+
+// ========== LOKASI ==========
+model Location {
+  id        String   @id @default(uuid())
+  name      String   @unique
+  address   String?
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+  deletedAt DateTime? @map("deleted_at")
+
+  items Item[]
+  @@map("locations")
+}
+
+// ========== ITEM / BARANG ==========
+model Item {
+  id          String   @id @default(uuid())
+  name        String
+  categoryId  String   @map("category_id")
+  locationId  String   @map("location_id")
+  totalStock  Int      @default(0) @map("total_stock")
+  availableStock Int   @default(0) @map("available_stock")
+  unit        String   @default("unit")
+  condition   String   @default("BAIK") // BAIK, RUSAK_RINGAN, RUSAK_BERAT, HILANG
+  status      String   @default("TERSEDIA") // TERSEDIA, DIGUNAKAN, DIPINJAMKAN, TIDAK_TERSEDIA
+  description String?
+  image       String?
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+  deletedAt   DateTime? @map("deleted_at")
+
+  category Category @relation(fields: [categoryId], references: [id])
+  location Location @relation(fields: [locationId], references: [id])
+
+  transactions     ItemTransaction[]
+  eventItems       EventItem[]
+  loanItems        LoanItem[]
+  borrowedDetails  BorrowedItemDetail[]
+  @@map("items")
+}
+
+// ========== TRANSAKSI BARANG (Masuk/Keluar) ==========
+model ItemTransaction {
+  id        String   @id @default(uuid())
+  itemId    String   @map("item_id")
+  type      String   // MASUK, KELUAR
+  quantity  Int
+  unit      String   @default("unit")
+  source    String?  // Sumber barang untuk transaksi MASUK
+  reason    String?  // Alasan untuk transaksi KELUAR
+  price     Float?
+  notes     String?
+  createdAt DateTime @default(now()) @map("created_at")
+  userId    String   @map("user_id")
+
+  item Item @relation(fields: [itemId], references: [id])
+  user User @relation(fields: [userId], references: [id])
+  @@map("item_transactions")
+}
+
+// ========== ACARA / PROKER ==========
+model Event {
+  id          String   @id @default(uuid())
+  name        String
+  date        DateTime
+  time        String?
+  location    String?
+  pic         String?  @map("person_in_charge") // Penanggung jawab
+  description String?
+  status      String   @default("DIRENCANAKAN") // DIRENCANAKAN, BERLANGSUNG, SELESAI, DIBATALKAN
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+  deletedAt   DateTime? @map("deleted_at")
+
+  eventItems EventItem[]
+  @@map("events")
+}
+
+// ========== KEBUTUHAN BARANG ACARA ==========
+model EventItem {
+  id            String @id @default(uuid())
+  eventId       String @map("event_id")
+  itemId        String @map("item_id")
+  quantityNeeded Int   @map("quantity_needed")
+  quantityPrepared Int @default(0) @map("quantity_prepared")
+  notes         String?
+  status        String @default("BELUM") // BELUM, SEBAGIAN, SIAP, SELESAI
+
+  event Event @relation(fields: [eventId], references: [id])
+  item  Item  @relation(fields: [itemId], references: [id])
+  @@map("event_items")
+}
+
+// ========== PEMINJAMAN (Barang KKN dipinjamkan) ==========
+model Loan {
+  id            String   @id @default(uuid())
+  borrowerName  String   @map("borrower_name")
+  borrowerPhone String?  @map("borrower_phone")
+  institution   String?  // Instansi/Organisasi
+  loanDate      DateTime @map("loan_date")
+  returnDate    DateTime? @map("return_date")
+  planReturnDate DateTime? @map("plan_return_date")
+  status        String   @default("DIPINJAM") // DIPINJAM, DIKEMBALIKAN, TERLAMBAT
+  notes         String?
+  createdAt     DateTime @default(now()) @map("created_at")
+  updatedAt     DateTime @updatedAt @map("updated_at")
+  deletedAt     DateTime? @map("deleted_at")
+
+  loanItems LoanItem[]
+  @@map("loans")
+}
+
+model LoanItem {
+  id       String @id @default(uuid())
+  loanId   String @map("loan_id")
+  itemId   String @map("item_id")
+  quantity Int
+
+  loan Loan @relation(fields: [loanId], references: [id])
+  item Item @relation(fields: [itemId], references: [id])
+  @@map("loan_items")
+}
+
+// ========== BARANG DIPINJAM DARI PIHAK LAIN ==========
+model BorrowedItem {
+  id            String   @id @default(uuid())
+  itemName      String   @map("item_name")
+  ownerName     String   @map("owner_name")
+  ownerPhone    String?  @map("owner_phone")
+  institution   String?
+  loanDate      DateTime @map("loan_date")
+  planReturnDate DateTime? @map("plan_return_date")
+  returnDate    DateTime? @map("return_date")
+  quantity      Int
+  unit          String   @default("unit")
+  conditionIn   String?  @map("condition_in")  // Kondisi saat dipinjam
+  conditionOut  String?  @map("condition_out") // Kondisi saat dikembalikan
+  status        String   @default("DIPINJAM") // DIPINJAM, DIKEMBALIKAN, TERLAMBAT
+  notes         String?
+  createdAt     DateTime @default(now()) @map("created_at")
+  updatedAt     DateTime @updatedAt @map("updated_at")
+
+  details BorrowedItemDetail[]
+  @@map("borrowed_items")
+}
+
+model BorrowedItemDetail {
+  id            String @id @default(uuid())
+  borrowedItemId String @map("borrowed_item_id")
+  itemId        String @map("item_id")
+  quantity      Int
+
+  borrowedItem BorrowedItem @relation(fields: [borrowedItemId], references: [id])
+  item         Item         @relation(fields: [itemId], references: [id])
+  @@map("borrowed_item_details")
+}
+
+// ========== ACTIVITY LOG ==========
+model ActivityLog {
+  id           String   @id @default(uuid())
+  userId       String   @map("user_id")
+  activityType String   @map("activity_type")
+  description  String
+  entityType   String?  @map("entity_type")
+  entityId     String?  @map("entity_id")
+  createdAt    DateTime @default(now()) @map("created_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  @@map("activity_logs")
+}
